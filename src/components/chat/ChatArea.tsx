@@ -1,71 +1,189 @@
 'use client'
 
-import { cn } from '@/lib/utils'
+import { useRef } from 'react'
+import { useChatStore, type MessageSegment, type Message } from '@/stores/chatStore'
 import { SuggestionPills } from './SuggestionPills'
-import { ChatInput } from './ChatInput'
+import { ChatInput, type ChatInputHandle } from './ChatInput'
+import { DiceRollWidget } from './DiceRollWidget'
+import { Loader2 } from 'lucide-react'
 
-interface ChatAreaProps {
-  onSendMessage?: (message: string) => void
-}
-
-// Mock chat messages for testing scrolling behavior
-const mockMessages = [
-  { id: '1', role: 'system', content: 'Welcome to the Realm of Shadows. You are a wandering adventurer who has just arrived at the village of Thornhaven. The village sits at the edge of a dark forest, and rumors speak of an ancient evil stirring in the depths.' },
-  { id: '2', role: 'user', content: 'I look around the village. What do I see?' },
-  { id: '3', role: 'system', content: 'The village of Thornhaven is small but bustling with activity. Wooden buildings line a muddy main street. You see a tavern called "The Rusty Sword" with warm light spilling from its windows, a blacksmith\'s forge billowing smoke, a small temple with a faded holy symbol, and a notice board near the village center. Villagers eye you with a mixture of curiosity and suspicion.' },
-  { id: '4', role: 'user', content: 'I approach the notice board and read what\'s posted there.' },
-  { id: '5', role: 'system', content: 'The notice board holds several weathered parchments:\n\n• "MISSING: Three children from the Miller family. Last seen near the forest edge. Reward: 50 gold pieces."\n\n• "WANTED: Brave souls to investigate strange lights in the old cemetery. Speak to Father Aldric at the temple."\n\n• "WORK AVAILABLE: The Rusty Sword seeks a strong arm to deal with rowdy patrons. Room and board included."\n\n• "WARNING: Do not venture into Darkwood Forest after nightfall. By order of the Village Elder."' },
-  { id: '6', role: 'user', content: 'The missing children sound urgent. I\'ll head to the Miller family to learn more.' },
-  { id: '7', role: 'system', content: 'You ask a passing villager for directions to the Miller family home. They point toward a modest farmhouse at the village\'s edge, closest to the forest. As you approach, you see a woman sitting on the porch, her face etched with worry and exhaustion. A man is pacing nearby, occasionally glancing toward the treeline with haunted eyes.' },
-  { id: '8', role: 'user', content: 'I approach them carefully and introduce myself. "I saw the notice about your children. I\'d like to help if I can."' },
-  { id: '9', role: 'system', content: 'The woman looks up, hope flickering in her tired eyes. "You... you\'d help us? The village guard won\'t go into the forest—they say it\'s too dangerous." The man stops pacing and joins her. "I\'m Thomas Miller. This is my wife, Elena. Our three children—Samuel, Lily, and young Peter—they went to pick berries at the forest edge three days ago. They never came back." His voice breaks. "We found Samuel\'s shoe near an old stone circle deeper in the woods, but... no one will search further."' },
-  { id: '10', role: 'user', content: 'I ask about the stone circle. "What can you tell me about this place? And has anything strange happened in the village recently?"' },
-  { id: '11', role: 'system', content: 'Thomas and Elena exchange worried glances. "The stone circle... it\'s an old place. Ancient, they say. Most folk avoid it—bad luck, or worse." Elena leans forward. "There have been strange happenings. Livestock going missing. Odd lights in the forest at night. And the dreams..." She shudders. "Many villagers have had nightmares. Whispers of a woman in black, calling to us." Thomas adds grimly, "Old Magda, the herbalist, might know more. She\'s lived here longest and knows the forest\'s secrets. But be warned—she\'s... peculiar."' },
-  { id: '12', role: 'user', content: 'Before I head to the forest, I should gather more information. Where can I find Old Magda?' },
-  { id: '13', role: 'system', content: '"Magda lives in a cottage at the north end of the village, near the old well," Elena says. "Look for the garden full of strange plants and the crow that sits on her roof. She doesn\'t welcome visitors, but mention our children—she has a soft spot for the little ones. She used to give them sweets when they visited." Thomas presses a worn leather pouch into your hands. "This is all we have—30 gold pieces. Please, bring our children home."' },
-  { id: '14', role: 'user', content: 'I accept the responsibility but refuse the payment for now. "Keep your gold. You\'ll need it when your children return." I head to find Old Magda.' },
-  { id: '15', role: 'system', content: 'Elena\'s eyes well with tears at your kindness. You make your way through the village toward the north end. Soon enough, you spot Magda\'s cottage—impossible to miss. The garden is a wild tangle of plants you don\'t recognize, some with flowers that seem to glow faintly even in daylight. A large black crow watches you from the roof, tilting its head with unsettling intelligence. The cottage itself is crooked, covered in moss, with smoke curling from a chimney made of mismatched stones. A sign on the door reads: "KNOCK TWICE. WAIT. DO NOT KNOCK AGAIN."' },
-  { id: '16', role: 'user', content: 'I follow the instructions exactly. Knock twice, then wait patiently.' },
-  { id: '17', role: 'system', content: 'You knock twice. The sound echoes strangely, as if the door is thicker than it appears. You wait. The crow caws once. A minute passes. Then another. Just when you begin to wonder if anyone is home, the door creaks open to reveal a tiny, ancient woman with sharp eyes that seem to look right through you. "Well, well. An adventurer. I wondered when one of your kind would finally show up." She sniffs the air. "You\'ve been to the Miller farm. You smell of their desperation." She steps aside, gesturing you in. "Come. We have much to discuss, and time grows short. The new moon rises tomorrow night."' },
-]
-
-function ChatMessage({ role, content }: { role: string; content: string }) {
-  const isUser = role === 'user'
+// User message bubble
+function UserMessage({ content, isAboveTable }: { content: string; isAboveTable?: boolean }) {
+  if (isAboveTable) {
+    return (
+      <div className="flex w-full justify-end">
+        <div className="max-w-[85%] rounded-2xl border-2 border-dashed border-cyan-500/50 bg-cyan-950/30 px-4 py-3">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-cyan-400">
+            Above Table
+          </p>
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-cyan-100">{content}</p>
+        </div>
+      </div>
+    )
+  }
   
   return (
-    <div className={cn(
-      'flex w-full',
-      isUser ? 'justify-end' : 'justify-start'
-    )}>
-      <div className={cn(
-        'max-w-[85%] rounded-2xl px-4 py-3',
-        isUser 
-          ? 'bg-indigo-600 text-white' 
-          : 'bg-zinc-800/80 text-zinc-100'
-      )}>
+    <div className="flex w-full justify-end">
+      <div className="max-w-[85%] rounded-2xl bg-indigo-600 px-4 py-3 text-white">
         <p className="whitespace-pre-wrap text-sm leading-relaxed">{content}</p>
       </div>
     </div>
   )
 }
 
-export function ChatArea({ onSendMessage }: ChatAreaProps) {
+// Narration segment bubble (no header)
+function NarrationBubble({ content }: { content: string }) {
+  return (
+    <div className="flex w-full justify-start">
+      <div className="max-w-[85%] rounded-2xl bg-zinc-800/80 px-4 py-3">
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-100">{content}</p>
+      </div>
+    </div>
+  )
+}
+
+// Above table segment bubble (out-of-character DM response)
+function AboveTableBubble({ content }: { content: string }) {
+  return (
+    <div className="flex w-full justify-start">
+      <div className="max-w-[85%] rounded-2xl border-2 border-dashed border-cyan-500/50 bg-cyan-950/30 px-4 py-3">
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-cyan-400">
+          Above Table
+        </p>
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-cyan-100">{content}</p>
+      </div>
+    </div>
+  )
+}
+
+// NPC segment bubble (with name header)
+function NPCBubble({ speaker, content }: { speaker: string; content: string }) {
+  return (
+    <div className="flex w-full justify-start">
+      <div className="max-w-[85%] rounded-2xl bg-zinc-800/80 px-4 py-3">
+        <p className="mb-1 text-xs font-semibold text-indigo-400">{speaker}</p>
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-100">{content}</p>
+      </div>
+    </div>
+  )
+}
+
+// Render assistant message with segments
+function AssistantMessage({ segments, isAboveTable }: { segments: MessageSegment[]; isAboveTable?: boolean }) {
+  return (
+    <>
+      {segments.map((seg, i) => {
+        if (seg.type === 'roll_request' && seg.rollRequest) {
+          return <DiceRollWidget key={i} rollRequest={seg.rollRequest} />
+        }
+        if (seg.type === 'above_table' || isAboveTable) {
+          return <AboveTableBubble key={i} content={seg.content} />
+        }
+        if (seg.type === 'npc' && seg.speaker) {
+          return <NPCBubble key={i} speaker={seg.speaker} content={seg.content} />
+        }
+        return <NarrationBubble key={i} content={seg.content} />
+      })}
+    </>
+  )
+}
+
+// Fallback for assistant messages without segments (plain text)
+function PlainAssistantMessage({ content }: { content: string }) {
+  return (
+    <div className="flex w-full justify-start">
+      <div className="max-w-[85%] rounded-2xl bg-zinc-800/80 px-4 py-3">
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-100">{content}</p>
+      </div>
+    </div>
+  )
+}
+
+// Render a message based on its role
+function ChatMessage({ message }: { message: Message }) {
+  if (message.role === 'user') {
+    return <UserMessage content={message.content} isAboveTable={message.isAboveTable} />
+  }
+  
+  if (message.role === 'assistant') {
+    if (message.segments && message.segments.length > 0) {
+      return <AssistantMessage segments={message.segments} isAboveTable={message.isAboveTable} />
+    }
+    // Fallback for messages without parsed segments
+    if (message.isAboveTable) {
+      return <AboveTableBubble content={message.content} />
+    }
+    return <PlainAssistantMessage content={message.content} />
+  }
+  
+  // System messages (if any) - render as narration
+  return <NarrationBubble content={message.content} />
+}
+
+function LoadingIndicator() {
+  return (
+    <div className="flex w-full justify-start">
+      <div className="flex items-center gap-2 rounded-2xl bg-zinc-800/80 px-4 py-3 text-zinc-400">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <span className="text-sm">Thinking...</span>
+      </div>
+    </div>
+  )
+}
+
+function EmptyState() {
+  return (
+    <div className="flex h-full items-center justify-center">
+      <div className="text-center">
+        <h2 className="text-xl font-semibold text-zinc-300">Welcome, Adventurer</h2>
+        <p className="mt-2 text-sm text-zinc-500">
+          Type a message to begin your adventure
+        </p>
+      </div>
+    </div>
+  )
+}
+
+export function ChatArea() {
+  const { messages, isLoading, error, sendMessage } = useChatStore()
+  const chatInputRef = useRef<ChatInputHandle>(null)
+
+  const handleSend = async (content: string) => {
+    await sendMessage(content)
+  }
+
+  const handleCommandSelect = (command: string) => {
+    chatInputRef.current?.prependText(command)
+  }
+
   return (
     <div className="relative h-full">
       {/* Messages area - scrollable, uses flex-col-reverse to anchor scroll at bottom */}
       <div className="flex h-full flex-col-reverse overflow-y-auto px-4 py-4 pb-36">
-        <div className="mx-auto flex w-full max-w-[1000px] flex-col gap-4">
-          {mockMessages.map((msg) => (
-            <ChatMessage key={msg.id} role={msg.role} content={msg.content} />
-          ))}
-        </div>
+        {messages.length === 0 && !isLoading ? (
+          <EmptyState />
+        ) : (
+          <div className="mx-auto flex w-full max-w-[1000px] flex-col gap-4">
+            {messages.map((msg) => (
+              <ChatMessage key={msg.id} message={msg} />
+            ))}
+            {isLoading && <LoadingIndicator />}
+          </div>
+        )}
       </div>
+
+      {/* Error message */}
+      {error && (
+        <div className="absolute left-4 right-4 top-4 rounded-lg bg-red-900/80 px-4 py-2 text-sm text-red-200">
+          Error: {error}
+        </div>
+      )}
 
       {/* Bottom input section - floating on top */}
       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent pt-6">
         <div className="mx-auto max-w-[1000px]">
-          <SuggestionPills />
-          <ChatInput onSend={onSendMessage} />
+          <SuggestionPills onCommandSelect={handleCommandSelect} />
+          <ChatInput ref={chatInputRef} onSend={handleSend} disabled={isLoading} />
         </div>
       </div>
     </div>

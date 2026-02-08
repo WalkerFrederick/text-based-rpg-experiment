@@ -1,0 +1,22 @@
+{
+  "name": "",
+  "stats": {
+    "strength": 1,
+    "speed": 0,
+    "knowledge": 2,
+    "presence": 1
+  },
+  "traits": [
+    {
+      "name": "Quick Learner",
+      "description": "Gains insight faster than most. +1 to Knowledge checks when encountering something new."
+    }
+  ],
+  "inventory": [
+    {
+      "name": "Worn Leather Satchel",
+      "description": "A weathered bag that has seen many roads.",
+      "quantity": 1
+    }
+  ]
+}

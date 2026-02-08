@@ -25,7 +25,7 @@ export interface RightSidebarConfig {
 }
 
 // Right sidebar navigation
-export type RightSidebarTab = 'character' | 'inventory' | 'spells' | 'rules'
+export type RightSidebarTab = 'character' | 'inventory' | 'rules' | 'debug'
 
 export interface NavItem {
   id: RightSidebarTab

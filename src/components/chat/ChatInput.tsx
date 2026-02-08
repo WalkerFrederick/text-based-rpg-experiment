@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react'
 import { Send } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -10,13 +10,39 @@ interface ChatInputProps {
   disabled?: boolean
 }
 
-export function ChatInput({
-  onSend,
-  placeholder = 'Type your message...',
-  disabled = false,
-}: ChatInputProps) {
+export interface ChatInputHandle {
+  prependText: (text: string) => void
+  focus: () => void
+}
+
+export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function ChatInput(
+  {
+    onSend,
+    placeholder = 'Type your message...',
+    disabled = false,
+  },
+  ref
+) {
   const [message, setMessage] = useState('')
-  const containerRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLFormElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Expose methods to parent via ref
+  useImperativeHandle(ref, () => ({
+    prependText: (text: string) => {
+      setMessage((prev) => {
+        // If already starts with this command, don't duplicate
+        if (prev.startsWith(text.trim())) return prev
+        // If there's existing text, prepend with the command
+        return text + prev
+      })
+      // Focus the input after prepending
+      inputRef.current?.focus()
+    },
+    focus: () => {
+      inputRef.current?.focus()
+    },
+  }))
 
   // Listen for viewport changes and scroll input into view
   useEffect(() => {
@@ -69,6 +95,7 @@ export function ChatInput({
         )}
       >
         <input
+          ref={inputRef}
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -99,4 +126,4 @@ export function ChatInput({
       </div>
     </form>
   )
-}
+})

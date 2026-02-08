@@ -4,7 +4,7 @@ import { CampaignCard } from './CampaignCard'
 import type { Campaign } from '@/types'
 
 interface CampaignListProps {
-  campaigns: Campaign[]
+  campaigns?: Campaign[]
   activeCampaignId?: string
   onCampaignSelect?: (campaign: Campaign) => void
   onCampaignSettings?: (campaign: Campaign) => void

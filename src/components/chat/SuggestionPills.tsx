@@ -2,41 +2,42 @@
 
 import { cn } from '@/lib/utils'
 
-interface SuggestionPill {
+export interface CommandPill {
   id: string
   label: string
+  command: string  // The actual command to prepend (e.g., "/rules")
 }
 
 interface SuggestionPillsProps {
-  suggestions?: SuggestionPill[]
-  onSelect?: (suggestion: SuggestionPill) => void
+  commands?: CommandPill[]
+  onCommandSelect?: (command: string) => void
 }
 
-const defaultSuggestions: SuggestionPill[] = [
-  { id: 'adventure', label: 'adventure' },
-  { id: 'rules', label: 'rules' },
-  { id: 'suggestions', label: 'suggestions' },
+const defaultCommands: CommandPill[] = [
+  { id: 'rules', label: '/rules', command: '/rules ' },
+  { id: 'abovetable', label: '/abovetable', command: '/abovetable ' },
+  { id: 'ooc', label: '/ooc', command: '/ooc ' },
 ]
 
 export function SuggestionPills({
-  suggestions = defaultSuggestions,
-  onSelect,
+  commands = defaultCommands,
+  onCommandSelect,
 }: SuggestionPillsProps) {
   return (
     <div className="flex flex-wrap gap-2 pb-1 pt-2">
-      {suggestions.map((suggestion) => (
+      {commands.map((cmd) => (
         <button
-          key={suggestion.id}
-          onClick={() => onSelect?.(suggestion)}
+          key={cmd.id}
+          onClick={() => onCommandSelect?.(cmd.command)}
           className={cn(
             'rounded-full px-4 py-1.5 text-sm font-medium',
-            'bg-zinc-800/60 text-zinc-400',
-            'border border-zinc-700/50',
-            'hover:bg-zinc-700/60 hover:text-zinc-300',
+            'bg-cyan-900/40 text-cyan-400',
+            'border border-cyan-700/50',
+            'hover:bg-cyan-800/50 hover:text-cyan-300',
             'transition-colors duration-150'
           )}
         >
-          {suggestion.label}
+          {cmd.label}
         </button>
       ))}
     </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { User, Backpack, Sparkles, BookOpen } from 'lucide-react'
+import { User, Backpack, BookOpen, Bug } from 'lucide-react'
 import type { RightSidebarTab } from '@/types'
 import { useUIStore } from '@/stores/uiStore'
 import { cn } from '@/lib/utils'
@@ -14,8 +14,8 @@ interface NavItemConfig {
 const navItems: NavItemConfig[] = [
   { id: 'character', label: 'Character', icon: <User className="h-5 w-5" /> },
   { id: 'inventory', label: 'Inventory', icon: <Backpack className="h-5 w-5" /> },
-  { id: 'spells', label: 'Spells', icon: <Sparkles className="h-5 w-5" /> },
   { id: 'rules', label: 'Rules', icon: <BookOpen className="h-5 w-5" /> },
+  { id: 'debug', label: 'Debug', icon: <Bug className="h-5 w-5" /> },
 ]
 
 interface IconNavStripProps {

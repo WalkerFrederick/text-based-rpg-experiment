@@ -36,11 +36,6 @@ export default function Home() {
     prevIsMediumRef.current = isMedium
   }, [isMedium, leftSidebar.isCollapsed, rightSidebar.isCollapsed, toggleLeftSidebar, toggleRightSidebar])
 
-  const handleSendMessage = (message: string) => {
-    console.log('Message sent:', message)
-    // Future: Send to AI backend
-  }
-
   // Collapse any open sidebar when clicking on chat area (medium screens only)
   const handleChatAreaClick = () => {
     if (!leftSidebar.isCollapsed) {
@@ -58,7 +53,7 @@ export default function Home() {
         <div className="app-background" />
         <MobileHeader />
         <main className="h-dvh w-screen overflow-hidden pt-14">
-          <ChatArea onSendMessage={handleSendMessage} />
+          <ChatArea />
         </main>
         <AnimatePresence>
           <Backdrop />
@@ -81,7 +76,7 @@ export default function Home() {
             className="h-full w-full overflow-hidden pr-14"
             onClick={handleChatAreaClick}
           >
-            <ChatArea onSendMessage={handleSendMessage} />
+            <ChatArea />
           </main>
 
           {/* Sidebars overlay from edges */}
@@ -105,7 +100,7 @@ export default function Home() {
           <LeftSidebarToggle />
         </AnimatePresence>
         <main className="flex-1 overflow-hidden">
-          <ChatArea onSendMessage={handleSendMessage} />
+          <ChatArea />
         </main>
         <RightSidebar />
       </div>
