@@ -15,10 +15,14 @@
     "@langchain/core": "^1.1.19",
     "@langchain/langgraph": "^1.1.4",
     "@langchain/openai": "^1.2.5",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.15.0",
     "langchain": "^1.2.18",
+    "lucide-react": "^0.511.0",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "tailwind-merge": "^3.3.1",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
